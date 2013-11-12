@@ -2,6 +2,7 @@ import java.io.File
 import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.RepositoryBuilder
+import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 
 
 object GitDownloader {
@@ -10,13 +11,15 @@ object GitDownloader {
     val url = "https://github.com/nkcsgexi/JVMBinaryAnalyzer.git"
     val path = "/home/xige/Desktop/re"
     // cloneRemoteRepo(url, path)
-    val repository = new RepositoryBuilder().findGitDir(new File(path)).build()
-    repository.getAllRefs.keySet().toArray.foreach(s => println(s.toString))
+    traverseCommitFromHead(path, commit => {
+       var id = commit.toObjectId
+
+    })
 
   }
 
 
-  def cloneRemoteRepo(url : String, path: String) {
+  def cloneRemoteRepo(url : String, path: String) = {
     val directory = new File(path)
     if(directory.exists()) FileUtils.deleteDirectory(directory)
     Git.cloneRepository()
@@ -25,6 +28,21 @@ object GitDownloader {
     .call()
   }
 
+
+  def traverseCommitFromHead(path : String, handle : RevCommit => Unit) = {
+    val repository = new RepositoryBuilder().findGitDir(new File(path)).build()
+    val walk = new RevWalk(repository)
+    walk.markStart(walk.parseCommit(repository.resolve("HEAD")))
+    val it = walk.iterator()
+    while(it.hasNext) {
+      val commit = it.next()
+      handle(commit)
+    }
+  }
+
+  def checkout(commit : RevCommit, destination : String) = {
+
+  }
 
 
 }
