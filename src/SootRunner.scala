@@ -6,8 +6,9 @@ import soot.jimple.parser.parser.Parser
 import soot._
 import soot.jimple.toolkits.annotation.arraycheck.ArrayBoundsChecker
 import soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker
+import soot.jimple.toolkits.annotation.tags.{ArrayCheckTag, NullCheckTag}
 import soot.jimple.toolkits.scalar.LocalNameStandardizer
-import soot.tagkit.{KeyTag, Tag}
+import soot.tagkit.{SourceLineNumberTag, KeyTag, Tag}
 import soot.toolkits.scalar.{UnusedLocalEliminator, ForwardFlowAnalysis}
 import soot.toolkits.graph.UnitGraph
 import soot.toolkits.graph.DirectedGraph
@@ -64,7 +65,14 @@ object SootRunner{
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform3", nameStan))
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform4", UnusedLocalEliminator.v))
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform", MyTransformer))
+  }
 
+
+  val ExplainTag: PartialFunction[Tag, String] = {
+    case tag if tag.isInstanceOf[NullCheckTag] && tag.asInstanceOf[NullCheckTag].needCheck=> {"Null check"}
+    case tag if tag.isInstanceOf[ArrayCheckTag] => {"Array check " + tag.asInstanceOf[ArrayCheckTag].isCheckLower}
+    case tag if tag.isInstanceOf[SourceLineNumberTag] => {"Source line number: " + tag.asInstanceOf[SourceLineNumberTag].getLineNumber}
+    case tag => {""}
   }
 
   private object MyTransformer extends BodyTransformer
@@ -78,8 +86,10 @@ object SootRunner{
       val uses = units.flatMap(u => u.getUseBoxes.toArray(Array.empty[ValueBox])).map(b => b.getValue)
       units.foreach(unit => {
         val tags = unit.getTags.toArray(Array.empty[Tag])
-        val names = tags.map(t => t.getName)
-        names.foreach(println)
+        tags.foreach(tag => {
+          println(ExplainTag(tag))
+
+        })
       })
     }
   }
