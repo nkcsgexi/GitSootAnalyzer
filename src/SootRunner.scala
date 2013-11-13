@@ -9,12 +9,18 @@ import soot.toolkits.graph.DirectedGraph
 
 object SootRunner{
 
+
+  val sootCp = ".:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib:" +
+    "/usr/local/share/scala/lib/scala-actors.jar:" +
+    "/usr/local/share/scala/lib/scala-library.jar:" +
+    "/usr/local/share/scala/lib/scala-swing.jar"
+
+
   def main(args: Array[String]) {
     //parser("java.io.File")
-    addTransformer
-    runSootCommand
-    val path = "/home/xige/Desktop/re/bin/sootOutput/JavaHello.jimp"
-    //parseJimple(path)
+    //addTransformer
+    //runSootCommand
+    parseJimple("sootOutput/ScalaHello$.jimp")
   }
 
   private def parser(name:String)
@@ -63,23 +69,17 @@ object SootRunner{
         println()
       })
     }
+  }
 
+  private def parseJimple(path : String) =
+  {
+    soot.Main.main(Array("-cp", sootCp, "-src-prec", "jimple", "-app", path))
   }
 
 
-
-
   private def runSootCommand = {
-    val path = "/home/xige/Desktop/re/bin/"
-    val javaCp = "/home/xige/eclipse_workspace/ByteCodeAnalyzer/libs/sootclasses-2.3.0.jar:" +
-      "/home/xige/eclipse_workspace/ByteCodeAnalyzer/libs/jasminclasses-2.3.0.jar:" +
-      "/home/xige/eclipse_workspace/ByteCodeAnalyzer/libs/polyglotclasses-1.3.5.jar"
-    val sootCp = ".:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib:" +
-      "/usr/local/share/scala/lib/scala-actors.jar:" +
-      "/usr/local/share/scala/lib/scala-library.jar:" +
-      "/usr/local/share/scala/lib/scala-swing.jar"
 
-    var args = Array("-cp", sootCp, "-pp", "-f", "j", "ScalaHello$")
+    val args = Array("-cp", sootCp, "-pp", "-f", "j", "ScalaHello$")
     soot.Main.main(args)
   }
 
