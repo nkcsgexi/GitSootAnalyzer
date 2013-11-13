@@ -1,0 +1,38 @@
+public class JavaHello extends java.lang.Object
+{
+
+    public void <init>()
+    {
+        JavaHello r0;
+
+        r0 := @this;
+        specialinvoke r0.<init>();
+        return;
+    }
+
+    public static void main(java.lang.String[])
+    {
+        java.lang.String[] r0;
+        int[] r1;
+        null_type n0;
+        java.lang.StringBuilder $r2, $r4, $r6, $r7;
+        java.io.PrintStream $r3;
+        java.lang.String $r5, $r8;
+        int $i0;
+
+        r0 := @parameter0;
+        r1 = newarray (int)[4];
+        n0 = null;
+        $r3 = java.lang.System.out;
+        $r2 = new java.lang.StringBuilder;
+        specialinvoke $r2.<init>();
+        $r4 = $r2.append("Hello!");
+        $r5 = n0.toString();
+        $r6 = $r4.append($r5);
+        $i0 = r1[6];
+        $r7 = $r6.append($i0);
+        $r8 = $r7.toString();
+        $r3.print($r8);
+        return;
+    }
+}

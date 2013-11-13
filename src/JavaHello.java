@@ -9,7 +9,9 @@ public class JavaHello {
 
     public static void main(String[] args)
     {
-        System.out.print("Hello!");
+        int[] arr = new int[4];
+        Object a = null;
+        System.out.print("Hello!" + a.toString() + arr[6]);
     }
 
 }
