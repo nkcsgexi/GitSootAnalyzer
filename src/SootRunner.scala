@@ -6,8 +6,9 @@ import soot.jimple.parser.parser.Parser
 import soot._
 import soot.jimple.toolkits.annotation.arraycheck.ArrayBoundsChecker
 import soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker
+import soot.jimple.toolkits.scalar.LocalNameStandardizer
 import soot.tagkit.{KeyTag, Tag}
-import soot.toolkits.scalar.ForwardFlowAnalysis
+import soot.toolkits.scalar.{UnusedLocalEliminator, ForwardFlowAnalysis}
 import soot.toolkits.graph.UnitGraph
 import soot.toolkits.graph.DirectedGraph
 
@@ -56,9 +57,12 @@ object SootRunner{
 
     val dup = new FindDuplicateSequences
     val arrChecker = ArrayBoundsChecker.v
-    var nullChecker = NullPointerChecker.v
+    val nullChecker = NullPointerChecker.v
+    val nameStan = LocalNameStandardizer.v
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform1", arrChecker))
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform2", nullChecker))
+    PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform3", nameStan))
+    PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform4", UnusedLocalEliminator.v))
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform", MyTransformer))
 
   }
@@ -70,24 +74,13 @@ object SootRunner{
     override protected def internalTransform(body : soot.Body, s : String, map : java.util.Map[_,_]) = {
       count += 1
       val units = body.getUnits.toArray(Array.empty[Unit]).filter(u => !u.branches())
-      //units.foreach(u => println(u,toString))
-      val defBoxes = units.flatMap(u => u.getDefBoxes.toArray(Array.empty[ValueBox]))
-      val useBoxes = units.flatMap(u => u.getUseBoxes.toArray(Array.empty[ValueBox]))
+      val defs = units.flatMap(u => u.getDefBoxes.toArray(Array.empty[ValueBox])).map(b => b.getValue)
+      val uses = units.flatMap(u => u.getUseBoxes.toArray(Array.empty[ValueBox])).map(b => b.getValue)
       units.foreach(unit => {
         val tags = unit.getTags.toArray(Array.empty[Tag])
         val names = tags.map(t => t.getName)
         names.foreach(println)
       })
-
-      /*units.foreach(unit => {
-        println("Is fall through: " + unit.fallsThrough)
-        print("Defined: ")
-        unit.getDefBoxes.toArray(Array.empty[ValueBox]).foreach(v => print(v.getValue))
-        println()
-        print("Used: ")
-        unit.getUseBoxes.toArray(Array.empty[ValueBox]).foreach(v => print(v.getValue))
-        println()
-      })*/
     }
   }
 
