@@ -1,19 +1,31 @@
 import com.sun.org.apache.bcel.internal.classfile.Signature.MyByteArrayInputStream
 import java.io.{BufferedInputStream, FileInputStream, File}
-import soot.jbco.bafTransformations.FindDuplicateSequences
+import java.util
+import java.util.ArrayList
+import soot.jbco.bafTransformations.{BafLineNumberer, FindDuplicateSequences}
 import soot.jimple.parser.{JimpleAST, Parse}
 import soot.jimple.parser.parser.Parser
 import soot._
 import soot.jimple.toolkits.annotation.arraycheck.ArrayBoundsChecker
+import soot.jimple.toolkits.annotation.callgraph.CallGraphTagger
 import soot.jimple.toolkits.annotation.nullcheck.NullPointerChecker
 import soot.jimple.toolkits.annotation.tags.{ArrayCheckTag, NullCheckTag}
 import soot.jimple.toolkits.scalar.LocalNameStandardizer
-import soot.tagkit.{SourceLineNumberTag, KeyTag, Tag}
+import soot.tagkit.{LinkTag, SourceLineNumberTag, KeyTag, Tag}
 import soot.toolkits.scalar.{UnusedLocalEliminator, ForwardFlowAnalysis}
 import soot.toolkits.graph.UnitGraph
 import soot.toolkits.graph.DirectedGraph
 
 object SootRunner{
+
+  val desktop = "/home/xige/Desktop"
+
+  val currentDirectory = "/home/xige/IdeaProjects/GitRepoAnalyzer"
+
+  val javaCP = "/home/xige/IdeaProjects/GitRepoAnalyzer/libs/sootclasses-2.3.0.jar:" +
+    "/home/xige/IdeaProjects/GitRepoAnalyzer/libs/jasminclasses-2.3.0.jar:" +
+    "/home/xige/IdeaProjects/GitRepoAnalyzer/libs/polyglotclasses-1.3.5.jar"
+
 
 
   val sootCp = ".:/usr/lib/jvm/java-7-openjdk-amd64/jre/lib:" +
@@ -24,10 +36,13 @@ object SootRunner{
 
   def main(args: Array[String]) {
     //parser("java.io.File")
+
     addTransformer
     runSootCommand
     //parseJimple("JavaHello.jimp")
   }
+
+
 
   private def parser(name:String)
   {
@@ -55,7 +70,6 @@ object SootRunner{
 
   private def addTransformer()
   {
-
     val dup = new FindDuplicateSequences
     val arrChecker = ArrayBoundsChecker.v
     val nullChecker = NullPointerChecker.v
@@ -64,6 +78,7 @@ object SootRunner{
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform2", nullChecker))
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform3", nameStan))
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform4", UnusedLocalEliminator.v))
+//    PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform5", CallGraphTagger.v))
     PackManager.v.getPack("jtp").add(new Transform("jtp.mytransform", MyTransformer))
   }
 
@@ -72,7 +87,8 @@ object SootRunner{
     case tag if tag.isInstanceOf[NullCheckTag] && tag.asInstanceOf[NullCheckTag].needCheck=> {"Null check"}
     case tag if tag.isInstanceOf[ArrayCheckTag] => {"Array check " + tag.asInstanceOf[ArrayCheckTag].isCheckLower}
     case tag if tag.isInstanceOf[SourceLineNumberTag] => {"Source line number: " + tag.asInstanceOf[SourceLineNumberTag].getLineNumber}
-    case tag => {""}
+    case tag if tag.isInstanceOf[LinkTag] => {"linked tag"}
+    case tag => {tag.getName}
   }
 
   private object MyTransformer extends BodyTransformer
@@ -101,9 +117,15 @@ object SootRunner{
 
 
   private def runSootCommand = {
-    val args = Array("-cp", sootCp, "-pp", "-f", "j", "JavaHello")
-    soot.Main.main(args)
+    val builder = new ProcessBuilder("java", "-cp", javaCP, "soot.Main", "-cp", sootCp, "-w", "-pp","-f", "j", "JavaHello")
+    builder.directory(new File(currentDirectory + "/out/production/GitRepoAnalyzer/"))
+    builder.redirectOutput(new File(desktop + "/log"))
+    builder.redirectError(new File(desktop + "/errlog"))
+    builder.start()
   }
+
+
+
 
 }		
 
