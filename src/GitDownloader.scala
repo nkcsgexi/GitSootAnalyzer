@@ -9,46 +9,32 @@ import scala.Predef._
 
 object GitDownloader {
 
-  var projectName = "junit"
-  var revisonEnd = 1
-  var directory = "/home/xige/Desktop/"
-  var headHash = "c6ab1aff3076a4335554699ec64f5b02ff1f654c"
+  val index = 1
+  val projectName = List("junit", "fbreader")(index)
+  val directory = List("/home/xige/Desktop/junit-study/", "/media/xige/My Passport/fbreaders/")(index)
+  val headHash = List("1c6c16160c572c6d6f38a7b2b11cb23bb1dd2575", "740e672a83c84e03cd02caeabbac7c1777eabee9")(index)
+  val url = List("https://github.com/junit-team/junit.git", "https://github.com/geometer/FBReaderJ.git")(index)
 
   def main(args : Array[String]) {
-    val url = "https://github.com/junit-team/junit.git"
     val path =  directory + projectName
-   //cloneRemoteRepo(url, path)
+    cloneRemoteRepo(url, path)
+ //   return
     val commitNames = collectCommitNames(path)
     println(commitNames.length)
-    for(i <- 1 to 10) {
+    for(i <- 0 to 300) {
       val newPath = path + i
+      checkout(path, commitNames(i))
       FileUtils.copyDirectory(new File(path), new File(newPath))
-      checkout(newPath, commitNames(i))
     }
   }
 
-  def d (count: Int, commit: RevCommit, previousPath : String) :String = {
-    if(count <= revisonEnd){
-      val id = commit.toObjectId
-      val name = id.getName
-      val newPath = directory + projectName + count
-      FileUtils.copyDirectory(new File(previousPath), new File(newPath))
-      checkout(newPath, name)
-      return newPath
-    } else
-      return previousPath
-  }
-
-
-
-
 
   def cloneRemoteRepo(url : String, path: String) = {
-    val directory = new File(path)
+    val directory = new File(path + "/")
     if(directory.exists()) FileUtils.deleteDirectory(directory)
     Git.cloneRepository()
     .setURI(url)
-    .setDirectory(directory).setBranch("remotes/origin/master")
+    .setDirectory(directory).setBranch("master")
     .call()
   }
 
@@ -65,7 +51,7 @@ object GitDownloader {
       println(commit.name())
     }
     println(names.length)
-    return names
+    return names.reverse
   }
 
 
@@ -73,7 +59,6 @@ object GitDownloader {
   def checkout(folder : String, name : String) = {
       println(name)
       val git = Git.open(new File(folder))
-      val command = git.checkout.setName(name).setForce(true)
-      command.call
+      git.checkout.setName(name).call()
   }
 }
