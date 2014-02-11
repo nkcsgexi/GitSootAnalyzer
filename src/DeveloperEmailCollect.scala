@@ -7,7 +7,10 @@ import scala.Predef._
 
 object DeveloperEmailCollect {
 
+  // The remote git repo url
   val url = "https://gerrit.googlesource.com/gerrit"
+
+  // The directory where the git repo shall be cloned.
   var directory = "/home/xige/Desktop/Untitled Folder/gerrit/"
 
   def main(args : Array[String]) {
